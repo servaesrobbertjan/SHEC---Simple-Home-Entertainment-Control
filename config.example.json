@@ -1,0 +1,16 @@
+{
+  "port": 8000,
+  "pin": "",
+  "vlc_path": "",
+  "vlc_http_port": 8081,
+  "vlc_http_password": "shec",
+  "fullscreen": true,
+  "autoplay_next": true,
+  "nas_login": [
+    { "share": "\\\\NAS\\video", "username": "", "password": "" }
+  ],
+  "media_roots": {
+    "Movies": "\\\\NAS\\Movies",
+    "Series": "Z:\\Series"
+  }
+}
