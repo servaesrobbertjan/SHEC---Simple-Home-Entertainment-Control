@@ -19,7 +19,7 @@ echo "[OK] $(python3 --version)"
 [ -f config.json ] || { cp config.example.json config.json; echo "[!] Created config.json - edit it to add your NAS folders."; }
 
 # System packages + NAS mounts
-python3 setup_linux.py || exit 1
+python3 "$PROGDIR"/setup_linux.py || exit 1
 
 # Private Python environment with the latest yt-dlp (re-created if it is broken, e.g. without pip)
 if ! "$VENV"/bin/python -m pip --version >/dev/null 2>&1; then
