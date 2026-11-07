@@ -19,6 +19,8 @@ from concurrent.futures import ThreadPoolExecutor
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
+from nas_paths import local_path, mount_point, split_unc
+
 try:
     import yt_dlp
 except ImportError:
@@ -60,6 +62,8 @@ def load_config():
                      f"    Tip: every \\ in a path must be written as \\\\ and entries need commas between them.")
     else:
         print(f"[!] No config.json found - copy config.example.json to config.json and edit it.")
+    # \\NAS\share\... paths -> /mnt/shec/nas/share/... on Linux (see nas_paths.py)
+    cfg["media_roots"] = {name: local_path(p) for name, p in cfg["media_roots"].items()}
     return cfg
 
 
@@ -469,13 +473,20 @@ def nas_login():
     """Log in to SMB shares listed in config 'nas_login' (Windows: net use)."""
     for entry in CONFIG["nas_login"]:
         share = entry.get("share", "")
-        if not share or not entry.get("username"):
+        if not share:
+            continue
+        if platform.system() != "Windows":  # mounted by setup_linux.py (start.sh)
+            unc = split_unc(share)
+            where = mount_point(unc[0], unc[1]) if unc else local_path(share)
+            if os.path.ismount(where):
+                print(f"NAS:   {share} mounted at {where}")
+            else:
+                print(f"[!] {share} is NOT mounted at {where} - see the messages above")
+            continue
+        if not entry.get("username"):
             continue
         if os.path.isdir(share):
             print(f"NAS:   {share} already reachable")
-            continue
-        if platform.system() != "Windows":
-            print(f"[!] {share} not reachable - on Linux mount it first (see README)")
             continue
         r = subprocess.run(
             ["net", "use", share, entry.get("password", ""), f"/user:{entry['username']}", "/persistent:no"],

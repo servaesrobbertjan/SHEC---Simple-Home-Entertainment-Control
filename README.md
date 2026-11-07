@@ -17,7 +17,9 @@ No app on the phone: it's a web page served by the PC.
 1. **Windows:** nothing to install by hand. The first time you run `start.bat`, it installs whatever is
    missing: Python (for this user only), VLC, yt-dlp, and a firewall rule so the phone can connect.
    Click "Yes" when Windows asks for permission.
-   **Linux:** install `python3`, `python3-venv` and `vlc` with your package manager.
+   **Linux (Debian/Ubuntu/Mint):** run `sh start.sh`. It installs what's missing (`python3-venv`, `vlc`,
+   `cifs-utils`) with apt, asking for your password. Don't install yt-dlp with apt: that version is too old.
+   SHEC installs its own up-to-date copy.
 2. Make the NAS reachable as a folder:
    - **Windows:** use a UNC path such as `\\NAS\video`. If the NAS needs a login, put it in `nas_login`
      in `config.json`. The server logs in (`net use`) at startup when the share isn't reachable yet:
@@ -26,13 +28,11 @@ No app on the phone: it's a web page served by the PC.
      ```
      Or leave it empty and let Windows remember the login (open the share once in Explorer and tick
      "Remember my credentials").
-   - **Linux:** mount the share, with the login in a credentials file:
-     ```sh
-     printf 'username=me\npassword=secret\n' | sudo tee /etc/nas-cred && sudo chmod 600 /etc/nas-cred
-     sudo mkdir -p /mnt/video
-     echo '//NAS/video /mnt/video cifs credentials=/etc/nas-cred,uid=1000,iocharset=utf8,_netdev 0 0' | sudo tee -a /etc/fstab
-     sudo mount /mnt/video
-     ```
+   - **Linux:** use the same `nas_login` and `\\NAS\...` paths as on Windows. `start.sh` mounts each
+     `nas_login` share at `/mnt/shec/<nas>/<share>` (adds it to `/etc/fstab` so it comes back after a
+     reboot; a backup is kept as `/etc/fstab.shec-backup`) and translates the `\\NAS\...` paths in
+     `media_roots` automatically. The login is stored in `~/.config/shec/` (readable only by you).
+     If the NAS name can't be found on the network, use its IP address instead: `\\\\192.168.1.10\\video`.
 3. Copy `config.example.json` to `config.json` and set `media_roots` (display name → folder):
    ```json
    "media_roots": { "Movies": "\\\\NAS\\Movies", "Series": "/mnt/series" }
